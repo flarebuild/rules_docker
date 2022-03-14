@@ -27,9 +27,8 @@ load(
 CONTAINERREGISTRY_RELEASE = "v0.0.38"
 RULES_DOCKER_GO_BINARY_RELEASE = "aad94363e63d31d574cf701df484b3e8b868a96a"
 
-def repositories():
+def repositories_detail(excludes, register):
     """Download dependencies of container rules."""
-    excludes = native.existing_rules().keys()
 
     # Go binaries.
     if "go_puller_linux_amd64" not in excludes:
@@ -191,15 +190,23 @@ def repositories():
             urls = ["https://github.com/bazelbuild/rules_pkg/releases/download/0.2.6-1/rules_pkg-0.2.6.tar.gz"],
         )
 
-    native.register_toolchains(
-        # Register the default docker toolchain that expects the 'docker'
-        # executable to be in the PATH
-        "@io_bazel_rules_docker//toolchains/docker:default_linux_toolchain",
-        "@io_bazel_rules_docker//toolchains/docker:default_windows_toolchain",
-        "@io_bazel_rules_docker//toolchains/docker:default_osx_toolchain",
-    )
+    if register:
+        native.register_toolchains(
+            # Register the default docker toolchain that expects the 'docker'
+            # executable to be in the PATH
+            "@io_bazel_rules_docker//toolchains/docker:default_linux_toolchain",
+            "@io_bazel_rules_docker//toolchains/docker:default_windows_toolchain",
+            "@io_bazel_rules_docker//toolchains/docker:default_osx_toolchain",
+        )
 
     if "docker_config" not in excludes:
         # Automatically configure the docker toolchain rule to use the default
         # docker binary from the system path
         _docker_toolchain_configure(name = "docker_config")
+
+
+def repositories():
+    repositories_detail(
+        excludes = native.existing_rules().keys(), 
+        register = True
+    )
